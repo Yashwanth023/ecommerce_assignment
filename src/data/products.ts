@@ -81,5 +81,23 @@ export const products: Product[] = [
     category: 'electronics',
     description: 'Latest smartphone with advanced features and great camera.',
     rating: 4.8
+  },
+  {
+    id: '9',
+    title: 'Laptop',
+    price: 899,
+    image: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400',
+    category: 'electronics',
+    description: 'High-performance laptop for work and entertainment.',
+    rating: 4.5
+  },
+  {
+    id: '10',
+    title: 'Watch',
+    price: 199,
+    image: 'https://images.unsplash.com/photo-1524592094714-0f0654e20314?w=400',
+    category: 'accessories',
+    description: 'Classic watch with elegant design.',
+    rating: 4.4
   }
 ];
