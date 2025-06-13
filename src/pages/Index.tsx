@@ -10,6 +10,8 @@ import CartModal from '../components/CartModal';
 import ProductDetailModal from '../components/ProductDetailModal';
 import PaymentPage from '../components/PaymentPage';
 import Footer from '../components/Footer';
+import OrdersModal from '../components/OrdersModal';
+import FeaturedProduct from '../components/FeaturedProduct';
 
 const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
@@ -20,6 +22,14 @@ const Index = () => {
   const [isCartModalOpen, setIsCartModalOpen] = useState(false);
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isPaymentPageOpen, setIsPaymentPageOpen] = useState(false);
+  const [isOrdersModalOpen, setIsOrdersModalOpen] = useState(false);
+
+  // Get a featured product (highest rated product for demo)
+  const featuredProduct = useMemo(() => {
+    return products.reduce((prev, current) => 
+      (prev.rating > current.rating) ? prev : current
+    );
+  }, []);
 
   const filteredProducts = useMemo(() => {
     return products.filter(product => {
@@ -55,11 +65,12 @@ const Index = () => {
             onSearchChange={setSearchQuery}
             onCartClick={() => setIsCartModalOpen(true)}
             onAuthClick={() => setIsAuthModalOpen(true)}
+            onOrdersClick={() => setIsOrdersModalOpen(true)}
           />
           
           <div className="container mx-auto px-4 py-8">
-            <div className="flex flex-col lg:flex-row gap-8">
-              <div className="lg:flex-shrink-0">
+            <div className="flex flex-col xl:flex-row gap-8">
+              <div className="xl:flex-shrink-0">
                 <Sidebar
                   selectedCategories={selectedCategories}
                   onCategoryChange={setSelectedCategories}
@@ -95,6 +106,15 @@ const Index = () => {
                   </div>
                 )}
               </div>
+
+              {/* Featured Product - Only on larger screens */}
+              <div className="hidden xl:block xl:w-80">
+                <FeaturedProduct
+                  product={featuredProduct}
+                  onProductClick={handleProductClick}
+                  onAuthRequired={handleAuthRequired}
+                />
+              </div>
             </div>
           </div>
           
@@ -121,6 +141,11 @@ const Index = () => {
           <PaymentPage
             isOpen={isPaymentPageOpen}
             onClose={() => setIsPaymentPageOpen(false)}
+          />
+          
+          <OrdersModal
+            isOpen={isOrdersModalOpen}
+            onClose={() => setIsOrdersModalOpen(false)}
           />
         </div>
       </CartProvider>

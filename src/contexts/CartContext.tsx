@@ -1,22 +1,37 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-interface CartItem {
-  id: string;
+export interface CartItem {
+  id: number;
   title: string;
   price: number;
   image: string;
   quantity: number;
 }
 
+export interface Order {
+  id: string;
+  items: CartItem[];
+  total: number;
+  date: string;
+  status: 'pending' | 'processing' | 'shipped' | 'delivered';
+  shippingAddress: {
+    name: string;
+    address: string;
+    city: string;
+    zipCode: string;
+  };
+}
+
 interface CartContextType {
   items: CartItem[];
-  addToCart: (product: { id: string; title: string; price: number; image: string }) => void;
-  removeFromCart: (id: string) => void;
-  updateQuantity: (id: string, quantity: number) => void;
-  getTotalPrice: () => number;
-  getTotalItems: () => number;
+  orders: Order[];
+  addToCart: (item: Omit<CartItem, 'quantity'>) => void;
+  removeFromCart: (id: number) => void;
+  updateQuantity: (id: number, quantity: number) => void;
   clearCart: () => void;
+  getTotalPrice: () => number;
+  placeOrder: (shippingAddress: Order['shippingAddress']) => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -31,69 +46,86 @@ export const useCart = () => {
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
 
   useEffect(() => {
-    const storedCart = localStorage.getItem('cart');
-    if (storedCart) {
-      setItems(JSON.parse(storedCart));
+    const storedItems = localStorage.getItem('cartItems');
+    const storedOrders = localStorage.getItem('userOrders');
+    if (storedItems) {
+      setItems(JSON.parse(storedItems));
+    }
+    if (storedOrders) {
+      setOrders(JSON.parse(storedOrders));
     }
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('cart', JSON.stringify(items));
+    localStorage.setItem('cartItems', JSON.stringify(items));
   }, [items]);
 
-  const addToCart = (product: { id: string; title: string; price: number; image: string }) => {
-    setItems(prev => {
-      const existingItem = prev.find(item => item.id === product.id);
+  useEffect(() => {
+    localStorage.setItem('userOrders', JSON.stringify(orders));
+  }, [orders]);
+
+  const addToCart = (item: Omit<CartItem, 'quantity'>) => {
+    setItems(prevItems => {
+      const existingItem = prevItems.find(i => i.id === item.id);
       if (existingItem) {
-        return prev.map(item =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
+        return prevItems.map(i =>
+          i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i
         );
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prevItems, { ...item, quantity: 1 }];
     });
   };
 
-  const removeFromCart = (id: string) => {
-    setItems(prev => prev.filter(item => item.id !== id));
+  const removeFromCart = (id: number) => {
+    setItems(prevItems => prevItems.filter(item => item.id !== id));
   };
 
-  const updateQuantity = (id: string, quantity: number) => {
+  const updateQuantity = (id: number, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(id);
       return;
     }
-    setItems(prev =>
-      prev.map(item =>
+    setItems(prevItems =>
+      prevItems.map(item =>
         item.id === id ? { ...item, quantity } : item
       )
     );
-  };
-
-  const getTotalPrice = () => {
-    return items.reduce((total, item) => total + item.price * item.quantity, 0);
-  };
-
-  const getTotalItems = () => {
-    return items.reduce((total, item) => total + item.quantity, 0);
   };
 
   const clearCart = () => {
     setItems([]);
   };
 
+  const getTotalPrice = () => {
+    return items.reduce((total, item) => total + item.price * item.quantity, 0);
+  };
+
+  const placeOrder = (shippingAddress: Order['shippingAddress']) => {
+    const newOrder: Order = {
+      id: Date.now().toString(),
+      items: [...items],
+      total: getTotalPrice(),
+      date: new Date().toISOString(),
+      status: 'pending',
+      shippingAddress
+    };
+    setOrders(prevOrders => [newOrder, ...prevOrders]);
+    clearCart();
+  };
+
   return (
     <CartContext.Provider value={{
       items,
+      orders,
       addToCart,
       removeFromCart,
       updateQuantity,
+      clearCart,
       getTotalPrice,
-      getTotalItems,
-      clearCart
+      placeOrder
     }}>
       {children}
     </CartContext.Provider>
