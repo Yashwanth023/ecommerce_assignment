@@ -14,9 +14,10 @@ import { Badge } from '@/components/ui/badge';
 interface CartModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onCheckout: () => void;
 }
 
-const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
+const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose, onCheckout }) => {
   const { items, removeFromCart, updateQuantity, getTotalPrice, clearCart } = useCart();
 
   if (items.length === 0) {
@@ -34,6 +35,11 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
       </Dialog>
     );
   }
+
+  const handleCheckout = () => {
+    onClose();
+    onCheckout();
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -94,7 +100,7 @@ const CartModal: React.FC<CartModalProps> = ({ isOpen, onClose }) => {
             <Button variant="outline" onClick={clearCart} className="flex-1">
               Clear Cart
             </Button>
-            <Button className="flex-1 bg-blue-600 hover:bg-blue-700">
+            <Button onClick={handleCheckout} className="flex-1 bg-blue-600 hover:bg-blue-700">
               Checkout
             </Button>
           </div>

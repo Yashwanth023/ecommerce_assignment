@@ -6,19 +6,33 @@ import { Card, CardContent, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Product } from '../data/products';
 import { useCart } from '../contexts/CartContext';
+import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '@/hooks/use-toast';
 
 interface ProductCardProps {
   product: Product;
   onProductClick: (product: Product) => void;
+  onAuthRequired: () => void;
 }
 
-const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) => {
+const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAuthRequired }) => {
   const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
   const { toast } = useToast();
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.stopPropagation();
+    
+    if (!isAuthenticated) {
+      onAuthRequired();
+      toast({
+        title: "Login Required",
+        description: "Please login to add items to your cart.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     addToCart({
       id: product.id,
       title: product.title,
@@ -46,33 +60,48 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick }) =>
     ));
   };
 
+  const getPriceCategoryColor = (category: string) => {
+    switch (category) {
+      case 'budget': return 'bg-green-100 text-green-800';
+      case 'mid-range': return 'bg-blue-100 text-blue-800';
+      case 'premium': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <Card 
       className="cursor-pointer hover:shadow-lg transition-shadow duration-200 h-full flex flex-col"
       onClick={() => onProductClick(product)}
     >
       <CardContent className="p-2 md:p-4 flex-1">
-        {/* Mobile responsive image */}
-        <div className="aspect-square overflow-hidden rounded-lg mb-2 md:mb-4">
+        <div className="aspect-square overflow-hidden rounded-lg mb-2 md:mb-4 relative">
           <img
             src={product.image}
             alt={product.title}
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-200"
           />
+          <Badge 
+            className={`absolute top-2 right-2 text-xs ${getPriceCategoryColor(product.priceCategory)}`}
+          >
+            {product.priceCategory}
+          </Badge>
         </div>
         
-        {/* Title - responsive text size */}
         <h3 className="font-semibold text-sm md:text-lg mb-1 md:mb-2 line-clamp-2">{product.title}</h3>
         
-        {/* Rating */}
         <div className="flex items-center gap-1 mb-1 md:mb-2">
           {renderStars(product.rating)}
           <span className="text-xs md:text-sm text-gray-600 ml-1">({product.rating})</span>
         </div>
         
-        {/* Price and Category */}
         <div className="flex items-center justify-between mb-2 md:mb-3 flex-wrap">
-          <span className="text-lg md:text-2xl font-bold text-blue-600">${product.price}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-lg md:text-2xl font-bold text-blue-600">${product.price}</span>
+            {product.originalPrice && (
+              <span className="text-sm text-gray-500 line-through">${product.originalPrice}</span>
+            )}
+          </div>
           <Badge variant="secondary" className="capitalize text-xs">
             {product.category}
           </Badge>
