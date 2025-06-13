@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -61,7 +60,7 @@ const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
     for (let i = 0; i < quantity; i++) {
       addToCart({
-        id: product.id,
+        id: parseInt(product.id),
         title: product.title,
         price: product.price,
         image: product.image

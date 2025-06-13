@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Star, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,7 +37,7 @@ const FeaturedProduct: React.FC<FeaturedProductProps> = ({
     }
 
     addToCart({
-      id: product.id,
+      id: parseInt(product.id),
       title: product.title,
       price: product.price,
       image: product.image

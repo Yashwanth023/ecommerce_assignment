@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,7 +33,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product, onProductClick, onAu
     }
 
     addToCart({
-      id: product.id,
+      id: parseInt(product.id),
       title: product.title,
       price: product.price,
       image: product.image
